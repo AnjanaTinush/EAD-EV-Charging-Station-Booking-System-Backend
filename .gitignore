@@ -1,0 +1,75 @@
+## Ignore Visual Studio temporary files, build results, and cache folders
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# IIS Express
+.vscode/
+.vsconfig
+.vscode/
+
+# Visual Studio Code workspace
+*.code-workspace
+
+# NuGet packages
+*.nupkg
+*.snupkg
+*.nuspec
+*.psmdcp
+*.psmdcp
+*.dll
+*.exe
+packages/
+!**/packages/build/
+!**/packages/repositories.config
+
+# Visual Studio generated files
+Generated\ Files/
+
+# Others
+*.dbmdl
+*.bak
+*.ldf
+*.mdf
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Coverage
+*.coverage
+*.coveragexml
+TestResults/
+
+# Publish
+publish/
+out/
+artifacts/
