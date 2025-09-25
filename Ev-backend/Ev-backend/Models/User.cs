@@ -1,22 +1,20 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace Ev_backend.Models
 {
+    [BsonIgnoreExtraElements]  // 👈 This ignores _id automatically
     public class User
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
-
         [BsonElement("username")]
         public string Username { get; set; }
+
+        [BsonElement("phone")]
+        public string Phone { get; set; }
 
         [BsonElement("password")]
         public string Password { get; set; }
 
         [BsonElement("role")]
         public string Role { get; set; }
-        // "Backoffice" or "StationOperator"
     }
 }

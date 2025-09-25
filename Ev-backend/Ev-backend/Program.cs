@@ -3,10 +3,16 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
+using Ev_backend.Repositories;
+using Ev_backend.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+// Add custom services
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<AuthService>();
 
 // MongoDB settings
 builder.Services.Configure<MongoDbSettings>(
