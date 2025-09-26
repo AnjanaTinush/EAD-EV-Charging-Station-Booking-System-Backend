@@ -2,11 +2,21 @@
 
 namespace Ev_backend.Models
 {
-    [BsonIgnoreExtraElements]  // 👈 This ignores _id automatically
+    public enum UserRole
+    {
+        Backoffice,
+        StationOperator,
+        EvOwner
+    }
+
+    [BsonIgnoreExtraElements]
     public class User
     {
         [BsonElement("username")]
         public string Username { get; set; }
+
+        [BsonElement("email")]
+        public string Email { get; set; }
 
         [BsonElement("phone")]
         public string Phone { get; set; }
@@ -14,7 +24,8 @@ namespace Ev_backend.Models
         [BsonElement("password")]
         public string Password { get; set; }
 
+        [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         [BsonElement("role")]
-        public string Role { get; set; }
+        public UserRole Role { get; set; }
     }
 }
