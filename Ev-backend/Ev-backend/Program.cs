@@ -1,17 +1,24 @@
-using Ev_backend.Config;       // MongoDB settings class
+﻿using Ev_backend.Config;       // MongoDB settings class
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 using Ev_backend.Repositories;
 using Ev_backend.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // 👇 This allows enum binding (case-insensitive)
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 // Add custom services
-builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
 
 // MongoDB settings
@@ -37,18 +44,18 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// ? Test MongoDB connection on startup
+// ✅ Test MongoDB connection on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
     try
     {
         db.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait();
-        Console.WriteLine("? MongoDB connected successfully!");
+        Console.WriteLine("✅ MongoDB connected successfully!");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"? MongoDB connection failed: {ex.Message}");
+        Console.WriteLine($"❌ MongoDB connection failed: {ex.Message}");
     }
 }
 

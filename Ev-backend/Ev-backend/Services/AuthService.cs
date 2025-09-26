@@ -5,32 +5,27 @@ namespace Ev_backend.Services
 {
     public class AuthService
     {
-        private readonly UserRepository _userRepository;
+        private readonly AuthRepository _authRepository;
 
-        public AuthService(UserRepository userRepository)
+        public AuthService(AuthRepository authRepository)
         {
-            _userRepository = userRepository;
+            _authRepository = authRepository;
         }
 
-        public async Task<User?> LoginAsync(string username, string password)
+        public async Task<User?> LoginAsync(string email, string password)
         {
-            var user = await _userRepository.GetByUsernameAsync(username);
-
-            if (user == null || user.Password != password)
-                return null;
-
-            return user;
+            return await _authRepository.ValidateUserAsync(email, password);
         }
 
         public async Task<User> RegisterAsync(User user)
         {
-            var existingUser = await _userRepository.GetByUsernameAsync(user.Username);
+            var existingUser = await _authRepository.GetByEmailAsync(user.Email);
             if (existingUser != null)
             {
-                throw new Exception("User already exists!");
+                throw new Exception("Email already exists!");
             }
 
-            await _userRepository.CreateAsync(user);
+            await _authRepository.CreateAsync(user);
             return user;
         }
     }
