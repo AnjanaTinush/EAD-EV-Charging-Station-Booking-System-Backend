@@ -17,7 +17,7 @@ namespace Ev_backend.Controllers
         public AuthController(AuthService authService, IMongoClient client)
         {
             _authService = authService;
-            _database = client.GetDatabase("EVChargingDB"); // 👈 use your DB name
+            _database = client.GetDatabase("EVChargingDB");
         }
 
         [HttpPost("register")]
@@ -26,22 +26,7 @@ namespace Ev_backend.Controllers
             try
             {
                 var createdUser = await _authService.RegisterAsync(user);
-
-                var usersCollection = _database.GetCollection<BsonDocument>("Users");
-                var filter = Builders<BsonDocument>.Filter.Eq("username", createdUser.Username);
-                var bsonUser = await usersCollection.Find(filter).FirstOrDefaultAsync();
-
-                return Ok(new
-                {
-                    message = "User registered successfully",
-                    user = new
-                    {
-                        id = bsonUser["_id"].ToString(),
-                        username = createdUser.Username,
-                        phone = createdUser.Phone,
-                        role = createdUser.Role
-                    }
-                });
+                return Ok(new { message = "User registered successfully", user = createdUser });
             }
             catch (Exception ex)
             {
@@ -49,15 +34,16 @@ namespace Ev_backend.Controllers
             }
         }
 
+
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] AuthDto loginDto)
         {
-            var user = await _authService.LoginAsync(loginDto.Username, loginDto.Password);
+            var user = await _authService.LoginAsync(loginDto.Email, loginDto.Password);
             if (user == null)
-                return Unauthorized(new { message = "Invalid username or password" });
+                return Unauthorized(new { message = "Invalid email or password" });
 
             var usersCollection = _database.GetCollection<BsonDocument>("Users");
-            var filter = Builders<BsonDocument>.Filter.Eq("username", user.Username);
+            var filter = Builders<BsonDocument>.Filter.Eq("email", user.Email);
             var bsonUser = await usersCollection.Find(filter).FirstOrDefaultAsync();
 
             return Ok(new
@@ -67,6 +53,7 @@ namespace Ev_backend.Controllers
                 {
                     id = bsonUser["_id"].ToString(),
                     username = user.Username,
+                    email = user.Email,
                     phone = user.Phone,
                     role = user.Role
                 }
