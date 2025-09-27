@@ -1,16 +1,31 @@
 ﻿using Ev_backend.Models;
-using MongoDB.Driver;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace Ev_backend.Repositories
 {
     public class UserRepository
     {
-        private readonly IMongoCollection<BsonDocument> _users; // 👈 use BsonDocument here
+        private readonly IMongoCollection<BsonDocument> _users;
 
         public UserRepository(IMongoDatabase database)
         {
             _users = database.GetCollection<BsonDocument>("Users");
+        }
+
+        // ===== Helper: Extract Role safely (works for string or int) =====
+        private string GetRole(BsonDocument doc)
+        {
+            if (!doc.Contains("role") || doc["role"].IsBsonNull)
+                return null;
+
+            return doc["role"].BsonType switch
+            {
+                BsonType.String => doc["role"].AsString,
+                BsonType.Int32 => Enum.GetName(typeof(UserRole), doc["role"].AsInt32),
+                BsonType.Int64 => Enum.GetName(typeof(UserRole), (int)doc["role"].AsInt64),
+                _ => doc["role"].ToString()
+            };
         }
 
         // ========== Get All ==========
@@ -24,7 +39,7 @@ namespace Ev_backend.Repositories
                 Username = d.Contains("username") ? d["username"].AsString : null,
                 Email = d.Contains("email") ? d["email"].AsString : null,
                 Phone = d.Contains("phone") ? d["phone"].AsString : null,
-                Role = d.Contains("role") ? d["role"].AsString : null
+                Role = GetRole(d)
             } as object).ToList();
         }
 
@@ -41,7 +56,7 @@ namespace Ev_backend.Repositories
                 Username = doc.Contains("username") ? doc["username"].AsString : null,
                 Email = doc.Contains("email") ? doc["email"].AsString : null,
                 Phone = doc.Contains("phone") ? doc["phone"].AsString : null,
-                Role = doc.Contains("role") ? doc["role"].AsString : null
+                Role = GetRole(doc)
             };
         }
 
@@ -58,7 +73,7 @@ namespace Ev_backend.Repositories
                 Username = doc.Contains("username") ? doc["username"].AsString : null,
                 Email = doc.Contains("email") ? doc["email"].AsString : null,
                 Phone = doc.Contains("phone") ? doc["phone"].AsString : null,
-                Role = doc.Contains("role") ? doc["role"].AsString : null,
+                Role = GetRole(doc),
                 message = "User created successfully with default password 000000"
             };
         }
@@ -68,12 +83,11 @@ namespace Ev_backend.Repositories
         {
             var filter = Builders<BsonDocument>.Filter.Eq("_id", ObjectId.Parse(id));
 
-            // ✅ Only update allowed fields (no password!)
             var update = Builders<BsonDocument>.Update
                 .Set("username", userIn.Username)
                 .Set("email", userIn.Email)
                 .Set("phone", userIn.Phone)
-                .Set("role", userIn.Role);
+                .Set("role", userIn.Role.ToString()); // store role as string
 
             var result = await _users.UpdateOneAsync(filter, update);
             if (result.MatchedCount == 0) return null;
@@ -84,7 +98,7 @@ namespace Ev_backend.Repositories
                 userIn.Username,
                 userIn.Email,
                 userIn.Phone,
-                userIn.Role,
+                Role = userIn.Role.ToString(),
                 message = "User updated successfully (password unchanged)"
             };
         }

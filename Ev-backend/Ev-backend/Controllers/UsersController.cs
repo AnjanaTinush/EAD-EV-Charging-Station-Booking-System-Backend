@@ -19,98 +19,61 @@ namespace Ev_backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var users = await _userService.GetAllAsync();
-                return Ok(users);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
-            }
+            var users = await _userService.GetAllAsync();
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
-            try
-            {
-                var user = await _userService.GetByIdAsync(id);
-                if (user == null) return NotFound(new { message = "User not found" });
-                return Ok(user);
-            }
-            catch (FormatException)
-            {
-                return BadRequest(new { message = "Invalid user ID format" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
-            }
+            var user = await _userService.GetByIdAsync(id);
+            if (user == null) return NotFound(new { message = "User not found" });
+            return Ok(user);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
-            try
-            {
-                if (dto == null)
-                    return BadRequest(new { message = "Invalid user data" });
+            if (dto == null) return BadRequest(new { message = "Invalid user data" });
 
-                var user = new User
-                {
-                    Username = dto.Username,
-                    Email = dto.Email,
-                    Phone = dto.Phone,
-                    Role = dto.Role,
-                    Password = "000000"
-                };
-
-                var result = await _userService.CreateAsync(user);
-                return Ok(result);
-            }
-            catch (Exception ex)
+            var user = new User
             {
-                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
-            }
+                Username = dto.Username,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                Role = dto.Role,
+                Password = "000000" // Default password
+            };
+
+            var result = await _userService.CreateAsync(user);
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] User user)
+        public async Task<IActionResult> Update(string id, [FromBody] UserUpdateDto dto)
         {
-            try
+            if (dto == null) return BadRequest(new { message = "Invalid user data" });
+
+            var user = new User
             {
-                var result = await _userService.UpdateAsync(id, user);
-                if (result == null) return NotFound(new { message = "User not found" });
-                return Ok(result);
-            }
-            catch (FormatException)
-            {
-                return BadRequest(new { message = "Invalid user ID format" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
-            }
+                Username = dto.Username,
+                Email = dto.Email,
+                Phone = dto.Phone,
+                Role = dto.Role
+                // 👈 Notice: No Password here
+            };
+
+            var result = await _userService.UpdateAsync(id, user);
+            if (result == null) return NotFound(new { message = "User not found" });
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            try
-            {
-                var result = await _userService.DeleteAsync(id);
-                if (result == null) return NotFound(new { message = "User not found" });
-                return Ok(result);
-            }
-            catch (FormatException)
-            {
-                return BadRequest(new { message = "Invalid user ID format" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Internal server error", error = ex.Message });
-            }
+            var result = await _userService.DeleteAsync(id);
+            if (result == null) return NotFound(new { message = "User not found" });
+            return Ok(result);
         }
     }
 }
