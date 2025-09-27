@@ -1,5 +1,4 @@
-﻿using Ev_backend.Models;
-using Ev_backend.Repositories;
+﻿using Ev_backend.Repositories;
 
 namespace Ev_backend.Services
 {
@@ -12,14 +11,10 @@ namespace Ev_backend.Services
             _userRepository = userRepository;
         }
 
-        public Task<List<User>> GetAllAsync() => _userRepository.GetAllAsync();
-
-        public Task<User?> GetByIdAsync(string id) => _userRepository.GetByIdAsync(id);
-
-        public Task CreateAsync(User user) => _userRepository.CreateAsync(user);
-
-        public Task UpdateAsync(string id, User user) => _userRepository.UpdateAsync(id, user);
-
-        public Task DeleteAsync(string id) => _userRepository.DeleteAsync(id);
+        public Task<List<object>> GetAllAsync() => _userRepository.GetAllAsync();
+        public Task<object?> GetByIdAsync(string id) => _userRepository.GetByIdAsync(id);
+        public Task<object> CreateAsync(Models.User user) => _userRepository.CreateAsync(user);
+        public Task<object?> UpdateAsync(string id, Models.User user) => _userRepository.UpdateAsync(id, user);
+        public Task<object?> DeleteAsync(string id) => _userRepository.DeleteAsync(id);
     }
 }

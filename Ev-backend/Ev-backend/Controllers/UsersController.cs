@@ -63,11 +63,11 @@ namespace Ev_backend.Controllers
                     Email = dto.Email,
                     Phone = dto.Phone,
                     Role = dto.Role,
-                    Password = "000000" // 👈 default password
+                    Password = "000000"
                 };
 
-                await _userService.CreateAsync(user);
-                return Ok(new { message = "User created successfully with default password 000000" });
+                var result = await _userService.CreateAsync(user);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -80,11 +80,9 @@ namespace Ev_backend.Controllers
         {
             try
             {
-                var existing = await _userService.GetByIdAsync(id);
-                if (existing == null) return NotFound(new { message = "User not found" });
-
-                await _userService.UpdateAsync(id, user);
-                return Ok(new { message = "User updated successfully (password unchanged)" });
+                var result = await _userService.UpdateAsync(id, user);
+                if (result == null) return NotFound(new { message = "User not found" });
+                return Ok(result);
             }
             catch (FormatException)
             {
@@ -101,11 +99,9 @@ namespace Ev_backend.Controllers
         {
             try
             {
-                var existing = await _userService.GetByIdAsync(id);
-                if (existing == null) return NotFound(new { message = "User not found" });
-
-                await _userService.DeleteAsync(id);
-                return Ok(new { message = "User deleted successfully" });
+                var result = await _userService.DeleteAsync(id);
+                if (result == null) return NotFound(new { message = "User not found" });
+                return Ok(result);
             }
             catch (FormatException)
             {
