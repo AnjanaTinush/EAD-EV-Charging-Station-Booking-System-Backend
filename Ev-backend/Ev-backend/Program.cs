@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
-
 using Ev_backend.Repositories;
 using Ev_backend.Services;
 using System.Text.Json.Serialization;
@@ -20,18 +19,20 @@ builder.Services.AddControllers()
 // Add custom services
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 
 // MongoDB settings
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
-builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
+builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     return new MongoClient(settings.ConnectionString);
 });
 
-builder.Services.AddScoped(sp =>
+builder.Services.AddScoped<IMongoDatabase>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
     var client = sp.GetRequiredService<IMongoClient>();
@@ -50,7 +51,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
     try
     {
-        db.RunCommandAsync((Command<BsonDocument>)"{ping:1}").Wait();
+        var command = new BsonDocument("ping", 1);
+        await db.RunCommandAsync<BsonDocument>(command);
         Console.WriteLine("✅ MongoDB connected successfully!");
     }
     catch (Exception ex)
@@ -67,9 +69,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
