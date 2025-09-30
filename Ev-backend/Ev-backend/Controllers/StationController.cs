@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Ev_backend.Models;
 using Ev_backend.Services;
+using Ev_backend.Dtos;
 
 namespace Ev_backend.Controllers
 {
@@ -17,8 +18,8 @@ namespace Ev_backend.Controllers
 
         // GET /api/station
         [HttpGet]
-        public async Task<ActionResult<List<Station>>> GetAll() =>
-            Ok(await _service.GetAllAsync());
+        public async Task<ActionResult<List<Station>>> GetAll()
+            => Ok(await _service.GetAllAsync());
 
         // GET /api/station/{id}
         [HttpGet("{id:length(24)}")]
@@ -34,9 +35,6 @@ namespace Ev_backend.Controllers
         {
             try
             {
-                // 👇 Always reset Id so MongoDB generates a new one
-                station.Id = null;
-
                 var created = await _service.CreateAsync(station);
                 return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
             }
@@ -46,8 +44,7 @@ namespace Ev_backend.Controllers
             }
         }
 
-
-        // PUT /api/station/{id}
+        // PUT /api/station/{id}  (full replace)
         [HttpPut("{id:length(24)}")]
         public async Task<IActionResult> Update(string id, Station station)
         {
@@ -59,6 +56,21 @@ namespace Ev_backend.Controllers
             catch (Exception ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+        }
+
+        // PATCH /api/station/{id}  (partial update: IsActive or AvailableSlots)
+        [HttpPatch("{id:length(24)}")]
+        public async Task<IActionResult> Patch(string id, [FromBody] StationPatchDto dto)
+        {
+            try
+            {
+                await _service.PatchAsync(id, dto);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
 

@@ -26,5 +26,11 @@ namespace Ev_backend.Repositories
 
         public async Task DeleteAsync(string id) =>
             await _stations.DeleteOneAsync(s => s.Id == id);
+
+        public async Task UpdateFieldsAsync(string id, UpdateDefinition<Station> updateDef)
+        {
+            await _stations.UpdateOneAsync(s => s.Id == id, updateDef);
+        }
+
     }
 }
