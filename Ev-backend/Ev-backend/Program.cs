@@ -21,6 +21,9 @@ builder.Services.AddControllers()
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
 
+builder.Services.AddScoped<StationRepository>();
+builder.Services.AddScoped<StationService>();
+
 // MongoDB settings
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
