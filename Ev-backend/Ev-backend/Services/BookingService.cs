@@ -154,5 +154,18 @@ namespace Ev_backend.Services
             var bytes = qr.GetGraphic(20);
             return Convert.ToBase64String(bytes);
         }
+
+        public async Task<List<BookingResponseDto>> GetAllAsync()
+        {
+            var list = await _repo.GetAllAsync();
+            return list.Select(Map).ToList();
+        }
+
+        public async Task<List<BookingResponseDto>> GetByOwnerAsync(string ownerNic)
+        {
+            var list = await _repo.GetByOwnerAsync(ownerNic);
+            return list.Select(Map).ToList();
+        }
+
     }
 }

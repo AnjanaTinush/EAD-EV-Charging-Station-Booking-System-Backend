@@ -62,5 +62,22 @@ namespace Ev_backend.Controllers
             var result = await _service.GetHistoryAsync(ownerNic);
             return Ok(result);
         }
+
+        // GET: api/booking/all
+        [HttpGet("all")]
+        public async Task<ActionResult<List<BookingResponseDto>>> GetAll()
+        {
+            var result = await _service.GetAllAsync();
+            return Ok(result);
+        }
+
+        // GET: api/booking/owner/{nic}
+        [HttpGet("owner/{nic}")]
+        public async Task<ActionResult<List<BookingResponseDto>>> GetByOwner(string nic)
+        {
+            var result = await _service.GetByOwnerAsync(nic);
+            return Ok(result);
+        }
+
     }
 }
