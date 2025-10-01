@@ -23,7 +23,7 @@ namespace Ev_backend.Services
             if (existingUserByEmail != null)
                 throw new Exception("Email already exists!");
 
-            var existingUserByNIC = await _authRepository.GetByOwnerNICAsync(user.OwnerNIC);
+            var existingUserByNIC = await _authRepository.GetByOwnerNICAsync(user.NIC);
             if (existingUserByNIC != null)
                 throw new Exception("OwnerNIC already exists!");
 

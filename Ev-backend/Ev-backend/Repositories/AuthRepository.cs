@@ -37,9 +37,9 @@ namespace Ev_backend.Repositories
                                .FirstOrDefaultAsync();
         }
 
-        public async Task<User?> GetByOwnerNICAsync(string ownerNIC)
+        public async Task<User?> GetByOwnerNICAsync(string nic)
         {
-            return await _users.Find(u => u.OwnerNIC == ownerNIC).FirstOrDefaultAsync();
+            return await _users.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         }
 
     }

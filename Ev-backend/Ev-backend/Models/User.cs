@@ -28,8 +28,8 @@ namespace Ev_backend.Models
         [BsonElement("password")]
         public string Password { get; set; }
 
-        [BsonElement("ownerNIC")]
-        public string OwnerNIC { get; set; }   // 👈 NEW required & unique
+        [BsonElement("nic")]
+        public string NIC { get; set; }   // 👈 NEW required & unique
 
         [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         [BsonElement("role")]
