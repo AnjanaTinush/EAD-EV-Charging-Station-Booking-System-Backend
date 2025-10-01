@@ -23,10 +23,10 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<StationRepository>();
 builder.Services.AddScoped<StationService>();
 
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();   // ✅ FIX
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();   
 builder.Services.AddScoped<IBookingService, BookingService>();
 
-builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>();   // ✅ only once
+builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>(); 
 builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
 
 builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
