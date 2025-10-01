@@ -29,9 +29,13 @@ builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
 builder.Services.AddSingleton<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
+builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>();
+builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 
 // MongoDB settings
