@@ -19,14 +19,17 @@ namespace Ev_backend.Services
 
         public async Task<User> RegisterAsync(User user)
         {
-            var existingUser = await _authRepository.GetByEmailAsync(user.Email);
-            if (existingUser != null)
-            {
+            var existingUserByEmail = await _authRepository.GetByEmailAsync(user.Email);
+            if (existingUserByEmail != null)
                 throw new Exception("Email already exists!");
-            }
+
+            var existingUserByNIC = await _authRepository.GetByOwnerNICAsync(user.OwnerNIC);
+            if (existingUserByNIC != null)
+                throw new Exception("OwnerNIC already exists!");
 
             await _authRepository.CreateAsync(user);
             return user;
         }
+
     }
 }

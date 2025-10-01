@@ -36,5 +36,11 @@ namespace Ev_backend.Repositories
             return await _users.Find(u => u.Email == email && u.Password == password)
                                .FirstOrDefaultAsync();
         }
+
+        public async Task<User?> GetByOwnerNICAsync(string ownerNIC)
+        {
+            return await _users.Find(u => u.OwnerNIC == ownerNIC).FirstOrDefaultAsync();
+        }
+
     }
 }

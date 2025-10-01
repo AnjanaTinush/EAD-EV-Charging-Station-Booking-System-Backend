@@ -12,6 +12,10 @@ namespace Ev_backend.Models
     [BsonIgnoreExtraElements]
     public class User
     {
+        [BsonId]
+        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        public string? Id { get; set; }   // 👈 Nullable, MongoDB will auto-generate
+
         [BsonElement("username")]
         public string Username { get; set; }
 
@@ -23,6 +27,9 @@ namespace Ev_backend.Models
 
         [BsonElement("password")]
         public string Password { get; set; }
+
+        [BsonElement("ownerNIC")]
+        public string OwnerNIC { get; set; }   // 👈 NEW required & unique
 
         [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         [BsonElement("role")]
