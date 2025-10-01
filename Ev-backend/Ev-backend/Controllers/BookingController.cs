@@ -12,7 +12,7 @@ namespace Ev_backend.Controllers
 
         public BookingController(IBookingService service) => _service = service;
 
-        // Web + Mobile: Create (I)
+        // Create booking
         [HttpPost]
         public async Task<ActionResult<BookingResponseDto>> Create([FromBody] CreateBookingDto dto)
         {
@@ -20,11 +20,10 @@ namespace Ev_backend.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
-        // (optional lookup for debugging)
         [HttpGet("{id}")]
         public IActionResult GetById(string id) => NotFound();
 
-        // Web + Mobile: Update (II)
+        // Update
         [HttpPut("{id}")]
         public async Task<ActionResult<BookingResponseDto>> Update(string id, [FromBody] UpdateBookingDto dto)
         {
@@ -32,7 +31,7 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // Web + Mobile: Cancel (III)
+        // Cancel
         [HttpPost("{id}/cancel")]
         public async Task<ActionResult<BookingResponseDto>> Cancel(string id, [FromBody] CancelBookingDto dto)
         {
@@ -40,7 +39,7 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // Approval → generate QR (Mobile requirement ii)
+        // Approve → QR
         [HttpPost("{id}/approve")]
         public async Task<ActionResult<BookingResponseDto>> Approve(string id, [FromBody] ApproveBookingDto dto)
         {
@@ -48,7 +47,7 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // Mobile: View Upcoming
+        // Upcoming
         [HttpGet("upcoming")]
         public async Task<ActionResult<List<BookingResponseDto>>> Upcoming([FromQuery] string ownerNic)
         {
@@ -56,7 +55,7 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // Mobile: View History (past)
+        // History
         [HttpGet("history")]
         public async Task<ActionResult<List<BookingResponseDto>>> History([FromQuery] string ownerNic)
         {

@@ -10,15 +10,16 @@ namespace Ev_backend.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; } = default!;
 
+        // Foreign Key: EV Owner NIC
         [BsonElement("ownerNic")]
-        public string OwnerNIC { get; set; } = default!;   // EV owner identifier
+        public string OwnerNIC { get; set; } = default!;
 
         [BsonElement("stationId")]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string StationId { get; set; } = default!;  // Charging station id
+        public string StationId { get; set; } = default!;
 
         [BsonElement("reservationTime")]
-        public DateTime ReservationTime { get; set; }      // UTC
+        public DateTime ReservationTime { get; set; }
 
         [BsonElement("status")]
         public BookingStatus Status { get; set; } = BookingStatus.Pending;
@@ -38,7 +39,6 @@ namespace Ev_backend.Models
         [BsonElement("cancelReason")]
         public string? CancelReason { get; set; }
 
-        // Set when Approved
         [BsonElement("qrCodeBase64")]
         public string? QrCodeBase64 { get; set; }
     }

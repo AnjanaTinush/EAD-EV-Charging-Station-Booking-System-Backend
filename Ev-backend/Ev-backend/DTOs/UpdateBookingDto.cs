@@ -2,6 +2,6 @@
 {
     public class UpdateBookingDto
     {
-        public DateTime NewReservationTime { get; set; } // UTC
+        public DateTime NewReservationTime { get; set; }
     }
 }

@@ -10,11 +10,13 @@ namespace Ev_backend.Services
     public class BookingService : IBookingService
     {
         private readonly IBookingRepository _repo;
+        private readonly IEVOwnerRepository _ownerRepo;   // check NIC exists
         private readonly ITimeProvider _clock;
 
-        public BookingService(IBookingRepository repo, ITimeProvider clock)
+        public BookingService(IBookingRepository repo, IEVOwnerRepository ownerRepo, ITimeProvider clock)
         {
             _repo = repo;
+            _ownerRepo = ownerRepo;
             _clock = clock;
         }
 
@@ -23,11 +25,16 @@ namespace Ev_backend.Services
             var now = _clock.UtcNow;
             var resTime = dto.ReservationTime;
 
-            // I. Create within 7 days (future)
+            // ✅ Check NIC exists in EV Owner DB
+            var owner = await _ownerRepo.GetByNICAsync(dto.OwnerNIC);
+            if (owner == null || !owner.IsActive)
+                throw new UnauthorizedAccessException("Booking not allowed. EV Owner with this NIC does not exist or is inactive.");
+
+            // Rule: within 7 days
             if (resTime < now || resTime > now.AddDays(7))
                 throw new InvalidOperationException("Reservation time must be within 7 days from now and in the future.");
 
-            // (optional) avoid exact-time overlap per station
+            // Prevent overlapping
             if (await _repo.ExistsOverlappingAsync(dto.StationId, resTime))
                 throw new InvalidOperationException("Another booking exists for this station at this time.");
 
@@ -53,7 +60,6 @@ namespace Ev_backend.Services
             EnsurePending(booking);
             EnsureBefore12h(booking.ReservationTime, now);
 
-            // new time also must be within 7 days
             if (dto.NewReservationTime < now || dto.NewReservationTime > now.AddDays(7))
                 throw new InvalidOperationException("New reservation time must be within 7 days from now and in the future.");
 
@@ -95,7 +101,7 @@ namespace Ev_backend.Services
             booking.ApprovedAt = _clock.UtcNow;
             booking.UpdatedAt = booking.ApprovedAt.Value;
 
-            // Generate QR for mobile to show
+            // Generate QR
             var payload = $"booking:{booking.Id}|owner:{booking.OwnerNIC}|station:{booking.StationId}|time:{booking.ReservationTime:o}";
             booking.QrCodeBase64 = GenerateQrBase64(payload);
 
@@ -115,7 +121,7 @@ namespace Ev_backend.Services
             return list.Select(Map).ToList();
         }
 
-        // ---- helpers ----
+        // Helpers
         private static void EnsureBefore12h(DateTime resUtc, DateTime nowUtc)
         {
             if (resUtc - nowUtc < TimeSpan.FromHours(12))
