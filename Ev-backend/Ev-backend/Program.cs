@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
+using Ev_backend.Utils;
 using Ev_backend.Repositories;
 using Ev_backend.Services;
 using System.Text.Json.Serialization;
@@ -23,6 +24,15 @@ builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddScoped<StationRepository>();
 builder.Services.AddScoped<StationService>();
+
+builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
+builder.Services.AddSingleton<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 
 // MongoDB settings
 builder.Services.Configure<MongoDbSettings>(
