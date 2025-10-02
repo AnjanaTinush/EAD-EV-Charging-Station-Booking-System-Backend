@@ -41,5 +41,19 @@ namespace Ev_backend.Repositories
         public Task<bool> ExistsOverlappingAsync(string stationId, DateTime reservationTimeUtc) =>
             _col.Find(b => b.StationId == stationId && b.ReservationTime == reservationTimeUtc)
                 .AnyAsync();
+
+        public Task<List<Booking>> GetAllAsync() =>
+            _col.Find(_ => true).SortByDescending(b => b.CreatedAt).ToListAsync();
+
+        public Task<List<Booking>> GetByOwnerAsync(string ownerNic) =>
+            _col.Find(b => b.OwnerNIC == ownerNic)
+                .SortByDescending(b => b.ReservationTime)
+                .ToListAsync();
+
+        public async Task DeleteByIdAsync(string id)
+        {
+            await _col.DeleteOneAsync(b => b.Id == id);
+        }
+
     }
 }

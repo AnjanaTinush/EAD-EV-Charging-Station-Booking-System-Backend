@@ -154,5 +154,49 @@ namespace Ev_backend.Services
             var bytes = qr.GetGraphic(20);
             return Convert.ToBase64String(bytes);
         }
+
+        public async Task<List<BookingResponseDto>> GetAllAsync()
+        {
+            var list = await _repo.GetAllAsync();
+            return list.Select(Map).ToList();
+        }
+
+        public async Task<List<BookingResponseDto>> GetByOwnerAsync(string ownerNic)
+        {
+            var list = await _repo.GetByOwnerAsync(ownerNic);
+            return list.Select(Map).ToList();
+        }
+
+        public async Task<BookingResponseDto> CompleteAsync(string id, CompletedBookingDto dto)
+        {
+            var booking = await _repo.GetByIdAsync(id) ?? throw new KeyNotFoundException("Booking not found");
+            var now = _clock.UtcNow;
+
+            // Only Approved bookings can be marked as Completed
+            if (booking.Status != BookingStatus.Approved)
+                throw new InvalidOperationException("Only approved bookings can be completed.");
+
+            booking.Status = BookingStatus.Completed;
+            booking.UpdatedAt = now;
+
+            // Optional: you could store notes in a new field if you want
+            // booking.CompletionNotes = dto.Notes;
+
+            await _repo.UpdateAsync(booking);
+            return Map(booking);
+        }
+
+        public async Task<bool> DeleteByIdAsync(string id)
+        {
+            var booking = await _repo.GetByIdAsync(id);
+            if (booking == null)
+                throw new KeyNotFoundException("Booking not found");
+
+            await _repo.DeleteByIdAsync(id);
+            return true;
+        }
+
+
+
     }
 }

@@ -62,5 +62,40 @@ namespace Ev_backend.Controllers
             var result = await _service.GetHistoryAsync(ownerNic);
             return Ok(result);
         }
+
+        // GET: api/booking/all
+        [HttpGet("all")]
+        public async Task<ActionResult<List<BookingResponseDto>>> GetAll()
+        {
+            var result = await _service.GetAllAsync();
+            return Ok(result);
+        }
+
+        // GET: api/booking/owner/{nic}
+        [HttpGet("owner/{nic}")]
+        public async Task<ActionResult<List<BookingResponseDto>>> GetByOwner(string nic)
+        {
+            var result = await _service.GetByOwnerAsync(nic);
+            return Ok(result);
+        }
+
+        // POST: api/booking/{id}/complete
+        [HttpPost("{id}/complete")]
+        public async Task<ActionResult<BookingResponseDto>> Complete(string id, [FromBody] CompletedBookingDto dto)
+        {
+            var result = await _service.CompleteAsync(id, dto);
+            return Ok(result);
+        }
+
+        // DELETE: api/booking/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            await _service.DeleteByIdAsync(id);
+            return NoContent();
+        }
+
+
+
     }
 }
