@@ -12,6 +12,8 @@ namespace Ev_backend.Services
         Task<List<BookingResponseDto>> GetHistoryAsync(string ownerNic);
         Task<List<BookingResponseDto>> GetAllAsync();
         Task<List<BookingResponseDto>> GetByOwnerAsync(string ownerNic);
+        Task<BookingResponseDto> CompleteAsync(string id, CompletedBookingDto dto);
+
 
     }
 }

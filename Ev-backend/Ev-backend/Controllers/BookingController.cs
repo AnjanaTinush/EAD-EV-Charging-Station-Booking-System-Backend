@@ -79,5 +79,14 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
+        // POST: api/booking/{id}/complete
+        [HttpPost("{id}/complete")]
+        public async Task<ActionResult<BookingResponseDto>> Complete(string id, [FromBody] CompletedBookingDto dto)
+        {
+            var result = await _service.CompleteAsync(id, dto);
+            return Ok(result);
+        }
+
+
     }
 }
