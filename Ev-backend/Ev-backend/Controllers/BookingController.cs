@@ -87,6 +87,15 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
+        // DELETE: api/booking/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            await _service.DeleteByIdAsync(id);
+            return NoContent();
+        }
+
+
 
     }
 }

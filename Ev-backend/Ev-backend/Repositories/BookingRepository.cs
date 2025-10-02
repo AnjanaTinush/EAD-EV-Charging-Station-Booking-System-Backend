@@ -49,5 +49,11 @@ namespace Ev_backend.Repositories
             _col.Find(b => b.OwnerNIC == ownerNic)
                 .SortByDescending(b => b.ReservationTime)
                 .ToListAsync();
+
+        public async Task DeleteByIdAsync(string id)
+        {
+            await _col.DeleteOneAsync(b => b.Id == id);
+        }
+
     }
 }

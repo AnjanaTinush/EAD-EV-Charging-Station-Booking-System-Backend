@@ -186,6 +186,17 @@ namespace Ev_backend.Services
             return Map(booking);
         }
 
+        public async Task<bool> DeleteByIdAsync(string id)
+        {
+            var booking = await _repo.GetByIdAsync(id);
+            if (booking == null)
+                throw new KeyNotFoundException("Booking not found");
+
+            await _repo.DeleteByIdAsync(id);
+            return true;
+        }
+
+
 
     }
 }

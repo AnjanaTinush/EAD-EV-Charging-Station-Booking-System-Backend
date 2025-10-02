@@ -12,5 +12,6 @@ namespace Ev_backend.Repositories
         Task<bool> ExistsOverlappingAsync(string stationId, DateTime reservationTimeUtc);
         Task<List<Booking>> GetAllAsync();
         Task<List<Booking>> GetByOwnerAsync(string ownerNic);
+        Task DeleteByIdAsync(string id);
     }
 }
