@@ -31,6 +31,10 @@ builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
 
 builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
 
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
+
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

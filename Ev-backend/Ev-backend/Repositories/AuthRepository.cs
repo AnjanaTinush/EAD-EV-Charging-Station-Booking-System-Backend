@@ -12,29 +12,9 @@ namespace Ev_backend.Repositories
             _users = database.GetCollection<User>("Users");
         }
 
-        /// <summary>
-        /// Get user by email (used for login and register validation).
-        /// </summary>
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
-        }
-
-        /// <summary>
-        /// Create a new user.
-        /// </summary>
-        public async Task CreateAsync(User user)
-        {
-            await _users.InsertOneAsync(user);
-        }
-
-        /// <summary>
-        /// Validate login by email and password.
-        /// </summary>
-        public async Task<User?> ValidateUserAsync(string email, string password)
-        {
-            return await _users.Find(u => u.Email == email && u.Password == password)
-                               .FirstOrDefaultAsync();
         }
 
         public async Task<User?> GetByOwnerNICAsync(string nic)
@@ -42,5 +22,18 @@ namespace Ev_backend.Repositories
             return await _users.Find(u => u.NIC == nic).FirstOrDefaultAsync();
         }
 
+        public async Task CreateAsync(User user)
+        {
+            await _users.InsertOneAsync(user);
+        }
+
+        /// <summary>
+        /// Validate login by NIC and Password.
+        /// </summary>
+        public async Task<User?> ValidateUserAsync(string nic, string password)
+        {
+            return await _users.Find(u => u.NIC == nic && u.Password == password)
+                               .FirstOrDefaultAsync();
+        }
     }
 }
