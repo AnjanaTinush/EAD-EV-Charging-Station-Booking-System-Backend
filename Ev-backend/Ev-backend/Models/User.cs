@@ -12,17 +12,24 @@ namespace Ev_backend.Models
     [BsonIgnoreExtraElements]
     public class User
     {
+        [BsonId]
+        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        public string? Id { get; set; }
+
         [BsonElement("username")]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [BsonElement("email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [BsonElement("phone")]
-        public string Phone { get; set; }
+        public string? Phone { get; set; }
 
         [BsonElement("password")]
-        public string Password { get; set; }
+        public string? Password { get; set; }
+
+        [BsonElement("nic")]
+        public string? NIC { get; set; }
 
         [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         [BsonElement("role")]

@@ -1,117 +1,59 @@
 ﻿using Ev_backend.Models;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Bson;
 
 namespace Ev_backend.Repositories
 {
     public class UserRepository
     {
-        private readonly IMongoCollection<BsonDocument> _users;
+        private readonly IMongoCollection<User> _users;
 
         public UserRepository(IMongoDatabase database)
         {
-            _users = database.GetCollection<BsonDocument>("Users");
+            _users = database.GetCollection<User>("Users");
         }
 
-        // ===== Helper: Extract Role safely (works for string or int) =====
-        private string GetRole(BsonDocument doc)
+        public async Task<List<User>> GetAllAsync()
         {
-            if (!doc.Contains("role") || doc["role"].IsBsonNull)
-                return null;
+            return await _users.Find(_ => true).ToListAsync();
+        }
 
-            return doc["role"].BsonType switch
+        public async Task<User?> GetByIdAsync(string id)
+        {
+            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
+            return await _users.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task CreateAsync(User user)
+        {
+            // 👇 default password and role
+            user.Password = "000000";
+            if (!Enum.IsDefined(typeof(UserRole), user.Role) || user.Role == 0)
             {
-                BsonType.String => doc["role"].AsString,
-                BsonType.Int32 => Enum.GetName(typeof(UserRole), doc["role"].AsInt32),
-                BsonType.Int64 => Enum.GetName(typeof(UserRole), (int)doc["role"].AsInt64),
-                _ => doc["role"].ToString()
-            };
+                user.Role = UserRole.Backoffice;
+            }
+            await _users.InsertOneAsync(user);
         }
 
-        // ========== Get All ==========
-        public async Task<List<object>> GetAllAsync()
+        public async Task UpdateAsync(string id, User userIn)
         {
-            var docs = await _users.Find(_ => true).ToListAsync();
+            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
 
-            return docs.Select(d => new
-            {
-                Id = d["_id"].ToString(),
-                Username = d.Contains("username") ? d["username"].AsString : null,
-                Email = d.Contains("email") ? d["email"].AsString : null,
-                Phone = d.Contains("phone") ? d["phone"].AsString : null,
-                Role = GetRole(d)
-            } as object).ToList();
+            // 👇 we don’t allow updating password here
+            var update = Builders<User>.Update
+                .Set(u => u.Username, userIn.Username)
+                .Set(u => u.Email, userIn.Email)
+                .Set(u => u.Phone, userIn.Phone)
+                .Set(u => u.NIC, userIn.NIC)
+                .Set(u => u.Role, userIn.Role);
+
+            await _users.UpdateOneAsync(filter, update);
         }
 
-        // ========== Get By Id ==========
-        public async Task<object?> GetByIdAsync(string id)
+        public async Task DeleteAsync(string id)
         {
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", ObjectId.Parse(id));
-            var doc = await _users.Find(filter).FirstOrDefaultAsync();
-            if (doc == null) return null;
-
-            return new
-            {
-                Id = doc["_id"].ToString(),
-                Username = doc.Contains("username") ? doc["username"].AsString : null,
-                Email = doc.Contains("email") ? doc["email"].AsString : null,
-                Phone = doc.Contains("phone") ? doc["phone"].AsString : null,
-                Role = GetRole(doc)
-            };
-        }
-
-        // ========== Create ==========
-        public async Task<object> CreateAsync(User user)
-        {
-            var doc = user.ToBsonDocument();
-            doc["password"] = "000000"; // default password
-            await _users.InsertOneAsync(doc);
-
-            return new
-            {
-                Id = doc["_id"].ToString(),
-                Username = doc.Contains("username") ? doc["username"].AsString : null,
-                Email = doc.Contains("email") ? doc["email"].AsString : null,
-                Phone = doc.Contains("phone") ? doc["phone"].AsString : null,
-                Role = GetRole(doc),
-                message = "User created successfully with default password 000000"
-            };
-        }
-
-        // ========== Update ==========
-        public async Task<object?> UpdateAsync(string id, User userIn)
-        {
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", ObjectId.Parse(id));
-
-            var update = Builders<BsonDocument>.Update
-                .Set("username", userIn.Username)
-                .Set("email", userIn.Email)
-                .Set("phone", userIn.Phone)
-                .Set("role", userIn.Role.ToString()); // store role as string
-
-            var result = await _users.UpdateOneAsync(filter, update);
-            if (result.MatchedCount == 0) return null;
-
-            return new
-            {
-                Id = id,
-                userIn.Username,
-                userIn.Email,
-                userIn.Phone,
-                Role = userIn.Role.ToString(),
-                message = "User updated successfully (password unchanged)"
-            };
-        }
-
-        // ========== Delete ==========
-        public async Task<object?> DeleteAsync(string id)
-        {
-            var filter = Builders<BsonDocument>.Filter.Eq("_id", ObjectId.Parse(id));
-            var result = await _users.DeleteOneAsync(filter);
-
-            if (result.DeletedCount == 0) return null;
-
-            return new { Id = id, message = "User deleted successfully" };
+            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
+            await _users.DeleteOneAsync(filter);
         }
     }
 }

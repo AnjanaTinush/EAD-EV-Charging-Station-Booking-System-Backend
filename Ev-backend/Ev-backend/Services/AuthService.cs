@@ -12,17 +12,27 @@ namespace Ev_backend.Services
             _authRepository = authRepository;
         }
 
-        public async Task<User?> LoginAsync(string email, string password)
+        public async Task<User?> LoginAsync(string nic, string password)
         {
-            return await _authRepository.ValidateUserAsync(email, password);
+            return await _authRepository.ValidateUserAsync(nic, password);
         }
 
         public async Task<User> RegisterAsync(User user)
         {
-            var existingUser = await _authRepository.GetByEmailAsync(user.Email);
-            if (existingUser != null)
-            {
+            // Ensure email uniqueness
+            var existingUserByEmail = await _authRepository.GetByEmailAsync(user.Email);
+            if (existingUserByEmail != null)
                 throw new Exception("Email already exists!");
+
+            // Ensure NIC uniqueness
+            var existingUserByNIC = await _authRepository.GetByOwnerNICAsync(user.NIC);
+            if (existingUserByNIC != null)
+                throw new Exception("NIC already exists!");
+
+            // Assign default role if none provided
+            if (!Enum.IsDefined(typeof(UserRole), user.Role) || user.Role == 0)
+            {
+                user.Role = UserRole.StationOperator;
             }
 
             await _authRepository.CreateAsync(user);

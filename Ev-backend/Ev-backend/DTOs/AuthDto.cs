@@ -2,7 +2,7 @@
 {
     public class AuthDto
     {
-        public string Email { get; set; }     // 👈 login with Email
+        public string NIC { get; set; }      // 👈 login with NIC
         public string Password { get; set; }
     }
 }

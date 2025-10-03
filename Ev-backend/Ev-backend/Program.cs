@@ -1,26 +1,45 @@
-﻿using Ev_backend.Config;       // MongoDB settings class
+﻿using Ev_backend.Config;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Ev_backend.Utils;
 using Ev_backend.Repositories;
 using Ev_backend.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add controllers + enum serializer
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // 👇 This allows enum binding (case-insensitive)
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// Add custom services
+// Register services & repositories
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
+
+builder.Services.AddScoped<StationRepository>();
+builder.Services.AddScoped<StationService>();
+
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();   
+builder.Services.AddScoped<IBookingService, BookingService>();
+
+builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>(); 
+builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
+
+builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
+
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
+
+
+// Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 // MongoDB settings
 builder.Services.Configure<MongoDbSettings>(
@@ -38,10 +57,6 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
     var client = sp.GetRequiredService<IMongoClient>();
     return client.GetDatabase(settings.DatabaseName);
 });
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -61,7 +76,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
+// Configure middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -71,5 +86,4 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
 app.Run();

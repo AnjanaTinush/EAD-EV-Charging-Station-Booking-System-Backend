@@ -16,6 +16,7 @@ namespace Ev_backend.Controllers
             _userService = userService;
         }
 
+        // ✅ Get all users
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -23,6 +24,7 @@ namespace Ev_backend.Controllers
             return Ok(users);
         }
 
+        // ✅ Get user by id
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -31,49 +33,55 @@ namespace Ev_backend.Controllers
             return Ok(user);
         }
 
+        // ✅ Create new user (default password = 000000, role = Backoffice if not provided)
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
-            if (dto == null) return BadRequest(new { message = "Invalid user data" });
-
             var user = new User
             {
                 Username = dto.Username,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                Role = dto.Role,
-                Password = "000000" // Default password
+                NIC = dto.NIC,
+                Password = "000000", // default password
+                Role = dto.Role ?? UserRole.Backoffice // default role
             };
 
-            var result = await _userService.CreateAsync(user);
-            return Ok(result);
+            await _userService.CreateAsync(user);
+            return Ok(new { message = "User created successfully", user });
         }
 
+        // ✅ Update user (password not updated here)
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UserUpdateDto dto)
         {
-            if (dto == null) return BadRequest(new { message = "Invalid user data" });
+            var existing = await _userService.GetByIdAsync(id);
+            if (existing == null) return NotFound(new { message = "User not found" });
 
-            var user = new User
+            var updatedUser = new User
             {
+                Id = existing.Id,
                 Username = dto.Username,
                 Email = dto.Email,
                 Phone = dto.Phone,
+                NIC = dto.NIC,
+                Password = existing.Password, // keep old password
                 Role = dto.Role
-                // 👈 Notice: No Password here
             };
 
-            var result = await _userService.UpdateAsync(id, user);
-            if (result == null) return NotFound(new { message = "User not found" });
-            return Ok(result);
+            await _userService.UpdateAsync(id, updatedUser);
+            return Ok(new { message = "User updated successfully", updatedUser });
         }
 
+        // ✅ Delete user
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            var result = await _userService.DeleteAsync(id);
-            if (result == null) return NotFound(new { message = "User not found" });
-            return Ok(result);
+            var existing = await _userService.GetByIdAsync(id);
+            if (existing == null) return NotFound(new { message = "User not found" });
+
+            await _userService.DeleteAsync(id);
+            return Ok(new { message = "User deleted successfully" });
         }
     }
 }
