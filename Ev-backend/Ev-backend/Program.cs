@@ -9,39 +9,46 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers + enum serializer
+// Add controllers + enum serializer (so enums show as strings in JSON)
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// Register services & repositories
+// ================== Dependency Injection ==================
+
+// Auth
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
+
+// User
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
+// Station
 builder.Services.AddScoped<StationRepository>();
 builder.Services.AddScoped<StationService>();
 
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();   
+// Booking
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
-builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>(); 
+// EV Owner
+builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>();
 builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
 
+// Mobile Authentication (only StationOperator & EvOwner login)
+builder.Services.AddScoped<MobileAuth>();
+
+// Utils
 builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
 
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<UserService>();
-
-
-// Swagger
+// ================== Swagger ==================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// MongoDB settings
+// ================== MongoDB Config ==================
 builder.Services.Configure<MongoDbSettings>(
     builder.Configuration.GetSection("MongoDbSettings"));
 
@@ -58,6 +65,7 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
+// ================== Build App ==================
 var app = builder.Build();
 
 // ✅ Test MongoDB connection on startup
@@ -76,7 +84,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure middleware
+// ================== Middleware ==================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -85,5 +93,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
