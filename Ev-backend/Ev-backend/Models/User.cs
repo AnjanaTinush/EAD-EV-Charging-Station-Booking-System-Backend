@@ -34,5 +34,14 @@ namespace Ev_backend.Models
         [BsonRepresentation(MongoDB.Bson.BsonType.String)]
         [BsonElement("role")]
         public UserRole Role { get; set; }
+
+        [BsonElement("isActive")]
+        public bool IsActive { get; set; } = true;
+
+        [BsonElement("createdAt")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [BsonElement("updatedAt")]
+        public DateTime? UpdatedAt { get; set; }
     }
 }
