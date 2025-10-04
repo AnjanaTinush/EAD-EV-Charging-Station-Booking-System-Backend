@@ -83,5 +83,47 @@ namespace Ev_backend.Controllers
             await _userService.DeleteAsync(id);
             return Ok(new { message = "User deleted successfully" });
         }
+
+        // ✅ Deactivate user account
+        [HttpPatch("{id}/deactivate")]
+        public async Task<IActionResult> Deactivate(string id)
+        {
+            var existing = await _userService.GetByIdAsync(id);
+            if (existing == null) return NotFound(new { message = "User not found" });
+
+            await _userService.DeactivateAsync(id);
+            return Ok(new { message = "User account deactivated successfully" });
+        }
+
+        // ✅ Reactivate user account (Backoffice only)
+        [HttpPatch("{id}/reactivate")]
+        public async Task<IActionResult> Reactivate(string id)
+        {
+            var existing = await _userService.GetByIdAsync(id);
+            if (existing == null) return NotFound(new { message = "User not found" });
+
+            if (existing.IsActive) return BadRequest(new { message = "User account is already active" });
+
+            await _userService.ReactivateAsync(id);
+            return Ok(new { message = "User account reactivated successfully" });
+        }
+
+        // ✅ Get user by NIC
+        [HttpGet("by-nic/{nic}")]
+        public async Task<IActionResult> GetByNIC(string nic)
+        {
+            var user = await _userService.GetByNICAsync(nic);
+            if (user == null) return NotFound(new { message = "User not found" });
+            return Ok(user);
+        }
+
+        // ✅ Get user by Email
+        [HttpGet("by-email/{email}")]
+        public async Task<IActionResult> GetByEmail(string email)
+        {
+            var user = await _userService.GetByEmailAsync(email);
+            if (user == null) return NotFound(new { message = "User not found" });
+            return Ok(user);
+        }
     }
 }
