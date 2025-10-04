@@ -55,5 +55,49 @@ namespace Ev_backend.Repositories
             var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
             await _users.DeleteOneAsync(filter);
         }
+
+        public async Task<User?> GetByNICAsync(string nic)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.NIC, nic);
+            return await _users.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Email, email);
+            return await _users.Find(filter).FirstOrDefaultAsync();
+        }
+
+        public async Task DeactivateAsync(string id)
+        {
+            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
+            var update = Builders<User>.Update
+                .Set(u => u.IsActive, false)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+            await _users.UpdateOneAsync(filter, update);
+        }
+
+        public async Task ReactivateAsync(string id)
+        {
+            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
+            var update = Builders<User>.Update
+                .Set(u => u.IsActive, true)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+            await _users.UpdateOneAsync(filter, update);
+        }
+
+        public async Task<bool> ExistsByNICAsync(string nic)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.NIC, nic);
+            var count = await _users.CountDocumentsAsync(filter);
+            return count > 0;
+        }
+
+        public async Task<bool> ExistsByEmailAsync(string email)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Email, email);
+            var count = await _users.CountDocumentsAsync(filter);
+            return count > 0;
+        }
     }
 }
