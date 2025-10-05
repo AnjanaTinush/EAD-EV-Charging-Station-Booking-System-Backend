@@ -74,16 +74,13 @@ namespace Ev_backend.Services
                 return null;
             }
 
-            Console.WriteLine("EVOwner not found in database");
+            Console.WriteLine("EVOwner not found in EvOwners collection");
 
-            // ==================== STATION OPERATOR LOGIN ====================
-            // ... rest of your code
-        
-
-        // ==================== STATION OPERATOR LOGIN ====================
-        var user = await _users
-                .Find(u => u.NIC == nicOrEmail && u.Role == UserRole.StationOperator)
-                .FirstOrDefaultAsync();
+            // ==================== USERS COLLECTION LOGIN (StationOperator, EvOwner, Backoffice) ====================
+            var user = await _users.Find(u =>
+                (u.NIC != null && u.NIC.ToLower() == nicOrEmail.ToLower()) ||
+                (u.Email != null && u.Email.ToLower() == nicOrEmail.ToLower())
+            ).FirstOrDefaultAsync();
 
             if (user != null)
             {
