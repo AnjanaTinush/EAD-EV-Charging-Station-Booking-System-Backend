@@ -31,8 +31,8 @@ namespace Ev_backend.Services
             Console.WriteLine($"📊 Total EVOwners in collection: {allEvOwners.Count}");
 
             var evOwner = allEvOwners.FirstOrDefault(o =>
-                o.NIC.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase) ||
-                o.Email.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase)
+                (o.NIC != null && o.NIC.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase)) ||
+                (o.Email != null && o.Email.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase))
             );
 
             Console.WriteLine($"🔍 EvOwner search result: {(evOwner != null ? $"Found - NIC: {evOwner.NIC}, Email: {evOwner.Email}" : "Not found")}");
