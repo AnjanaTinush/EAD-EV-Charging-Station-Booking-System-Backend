@@ -25,8 +25,8 @@ namespace Ev_backend.Services
         {
             // ==================== EV OWNER LOGIN ====================
             var evOwnerFilter = Builders<EVOwner>.Filter.Or(
-               Builders<EVOwner>.Filter.Regex(o => o.NIC, new BsonRegularExpression($"^{nicOrEmail}$", "i")),
-               Builders<EVOwner>.Filter.Regex(o => o.Email, new BsonRegularExpression($"^{nicOrEmail}$", "i"))
+               Builders<EVOwner>.Filter.Regex("nic", new BsonRegularExpression($"^{nicOrEmail}$", "i")),
+               Builders<EVOwner>.Filter.Regex("email", new BsonRegularExpression($"^{nicOrEmail}$", "i"))
            );
             var evOwner = await _evOwners.Find(evOwnerFilter).FirstOrDefaultAsync();
 
