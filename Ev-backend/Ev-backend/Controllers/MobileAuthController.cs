@@ -18,18 +18,22 @@ namespace Ev_backend.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.NIC) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { message = "NIC and Password are required" });
+
             var user = await _authService.AuthenticateAsync(request.NIC, request.Password);
 
             if (user == null)
-                return Unauthorized(new { message = "Invalid NIC, password or role" });
+                return Unauthorized(new { message = "Invalid NIC or Password" });
 
             return Ok(new { message = "Login successful", user });
         }
+
     }
 
     public class LoginRequest
     {
-        public string NIC { get; set; }
-        public string Password { get; set; }
+        public string NIC { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

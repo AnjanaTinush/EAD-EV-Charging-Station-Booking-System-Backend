@@ -13,7 +13,7 @@ namespace Ev_backend.Repositories
         {
             var client = new MongoClient(options.Value.ConnectionString);
             var db = client.GetDatabase(options.Value.DatabaseName);
-            _collection = db.GetCollection<EVOwner>("evowners");
+            _collection = db.GetCollection<EVOwner>("EvOwners");
         }
 
         public Task<EVOwner> GetByIdAsync(string id) =>

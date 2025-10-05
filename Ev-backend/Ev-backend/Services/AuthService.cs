@@ -1,5 +1,6 @@
 ﻿using Ev_backend.Models;
 using Ev_backend.Repositories;
+using BCrypt.Net; // for password hashing
 
 namespace Ev_backend.Services
 {
@@ -14,7 +15,14 @@ namespace Ev_backend.Services
 
         public async Task<User?> LoginAsync(string nic, string password)
         {
-            return await _authRepository.ValidateUserAsync(nic, password);
+            var user = await _authRepository.ValidateUserAsync(nic, password);
+
+            // Optional: If ValidateUserAsync does plain text check,
+            // you can instead fetch user and verify hash here
+            if (user != null && BCrypt.Net.BCrypt.Verify(password, user.Password))
+                return user;
+
+            return null;
         }
 
         public async Task<User> RegisterAsync(User user)
@@ -34,6 +42,9 @@ namespace Ev_backend.Services
             {
                 user.Role = UserRole.StationOperator;
             }
+
+            // ✅ Encrypt password before saving
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
             await _authRepository.CreateAsync(user);
             return user;
