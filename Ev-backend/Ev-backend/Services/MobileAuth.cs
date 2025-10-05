@@ -23,12 +23,16 @@ namespace Ev_backend.Services
         /// </summary>
         public async Task<object?> AuthenticateAsync(string nicOrEmail, string password)
         {
+            Console.WriteLine($"🔍 Attempting login with: {nicOrEmail}");
+
             // ==================== EV OWNER LOGIN ====================
-            var evOwnerFilter = Builders<EVOwner>.Filter.Or(
-               Builders<EVOwner>.Filter.Regex("nic", new BsonRegularExpression($"^{nicOrEmail}$", "i")),
-               Builders<EVOwner>.Filter.Regex("email", new BsonRegularExpression($"^{nicOrEmail}$", "i"))
-           );
-            var evOwner = await _evOwners.Find(evOwnerFilter).FirstOrDefaultAsync();
+            // Try to find by NIC first (case-insensitive)
+            var evOwner = await _evOwners.Find(o =>
+                o.NIC.ToLower() == nicOrEmail.ToLower() ||
+                o.Email.ToLower() == nicOrEmail.ToLower()
+            ).FirstOrDefaultAsync();
+
+            Console.WriteLine($"🔍 EvOwner search result: {(evOwner != null ? "Found" : "Not found")}");
 
             if (evOwner != null)
             {
