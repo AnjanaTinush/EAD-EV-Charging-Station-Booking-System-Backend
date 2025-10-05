@@ -9,7 +9,19 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers + enum serializer (so enums show as strings in JSON)
+// ================== CORS ==================
+// Allow frontend on localhost:5173 (Vite / React)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // frontend URL
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// ================== Controllers ==================
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -90,6 +102,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Enable CORS for frontend
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
