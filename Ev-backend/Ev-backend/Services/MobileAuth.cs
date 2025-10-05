@@ -23,16 +23,19 @@ namespace Ev_backend.Services
         /// </summary>
         public async Task<object?> AuthenticateAsync(string nicOrEmail, string password)
         {
-            Console.WriteLine($"🔍 Attempting login with: {nicOrEmail}");
+            Console.WriteLine($"🔍 Attempting login with: '{nicOrEmail}', Password length: {password?.Length}");
 
             // ==================== EV OWNER LOGIN ====================
-            // Try to find by NIC first (case-insensitive)
-            var evOwner = await _evOwners.Find(o =>
-                o.NIC.ToLower() == nicOrEmail.ToLower() ||
-                o.Email.ToLower() == nicOrEmail.ToLower()
-            ).FirstOrDefaultAsync();
+            // Get all EVOwners and filter in memory for case-insensitive matching
+            var allEvOwners = await _evOwners.Find(_ => true).ToListAsync();
+            Console.WriteLine($"📊 Total EVOwners in collection: {allEvOwners.Count}");
 
-            Console.WriteLine($"🔍 EvOwner search result: {(evOwner != null ? "Found" : "Not found")}");
+            var evOwner = allEvOwners.FirstOrDefault(o =>
+                o.NIC.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase) ||
+                o.Email.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase)
+            );
+
+            Console.WriteLine($"🔍 EvOwner search result: {(evOwner != null ? $"Found - NIC: {evOwner.NIC}, Email: {evOwner.Email}" : "Not found")}");
 
             if (evOwner != null)
             {
@@ -77,10 +80,15 @@ namespace Ev_backend.Services
             Console.WriteLine("EVOwner not found in EvOwners collection");
 
             // ==================== USERS COLLECTION LOGIN (StationOperator, EvOwner, Backoffice) ====================
-            var user = await _users.Find(u =>
-                (u.NIC != null && u.NIC.ToLower() == nicOrEmail.ToLower()) ||
-                (u.Email != null && u.Email.ToLower() == nicOrEmail.ToLower())
-            ).FirstOrDefaultAsync();
+            var allUsers = await _users.Find(_ => true).ToListAsync();
+            Console.WriteLine($"📊 Total Users in collection: {allUsers.Count}");
+
+            var user = allUsers.FirstOrDefault(u =>
+                (u.NIC != null && u.NIC.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase)) ||
+                (u.Email != null && u.Email.Equals(nicOrEmail, StringComparison.OrdinalIgnoreCase))
+            );
+
+            Console.WriteLine($"🔍 User search result: {(user != null ? $"Found - Role: {user.Role}" : "Not found")}");
 
             if (user != null)
             {
