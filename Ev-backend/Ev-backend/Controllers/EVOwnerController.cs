@@ -25,7 +25,7 @@ namespace Ev_backend.Controllers
         public async Task<ActionResult<EVOwnerResponseDto>> GetById(string id)
         {
             var owner = await _service.GetByIdAsync(id);
-            if (owner == null) return NotFound();
+            if (owner == null) return NotFound(new { message = "Owner not found" });
             return Ok(owner);
         }
 
@@ -33,29 +33,64 @@ namespace Ev_backend.Controllers
         public async Task<ActionResult<EVOwnerResponseDto>> GetByNIC(string nic)
         {
             var owner = await _service.GetByNICAsync(nic);
-            if (owner == null) return NotFound();
+            if (owner == null) return NotFound(new { message = "Owner not found" });
             return Ok(owner);
         }
 
         [HttpPost]
-        public async Task<ActionResult<EVOwnerResponseDto>> Create([FromBody] CreateEVOwnerDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateEVOwnerDto dto)
         {
-            var result = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            try
+            {
+                var result = await _service.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Duplicate NIC or validation issue
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Other unexpected error
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<EVOwnerResponseDto>> Update(string id, [FromBody] UpdateEVOwnerDto dto)
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateEVOwnerDto dto)
         {
-            var result = await _service.UpdateAsync(id, dto);
-            return Ok(result);
+            try
+            {
+                var result = await _service.UpdateAsync(id, dto);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
-            await _service.DeleteAsync(id);
-            return NoContent();
+            try
+            {
+                await _service.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "Owner not found" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An unexpected error occurred.", detail = ex.Message });
+            }
         }
     }
 }

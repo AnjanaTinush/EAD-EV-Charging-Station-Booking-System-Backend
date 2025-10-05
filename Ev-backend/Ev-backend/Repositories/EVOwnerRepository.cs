@@ -16,10 +16,10 @@ namespace Ev_backend.Repositories
             _collection = db.GetCollection<EVOwner>("evowners");
         }
 
-        public Task<EVOwner?> GetByIdAsync(string id) =>
+        public Task<EVOwner> GetByIdAsync(string id) =>
             _collection.Find(o => o.Id == id).FirstOrDefaultAsync();
 
-        public Task<EVOwner?> GetByNICAsync(string nic) =>
+        public Task<EVOwner> GetByNICAsync(string nic) =>
             _collection.Find(o => o.NIC == nic).FirstOrDefaultAsync();
 
         public Task<List<EVOwner>> GetAllAsync() =>
