@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ev_backend.Controllers
 {
     [ApiController]
-    [Route("/api/[controller]")]
+    [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
@@ -24,16 +24,18 @@ namespace Ev_backend.Controllers
             return Ok(users);
         }
 
-        // ✅ Get user by id
+        // ✅ Get user by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
             var user = await _userService.GetByIdAsync(id);
-            if (user == null) return NotFound(new { message = "User not found" });
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
             return Ok(user);
         }
 
-        // ✅ Create new user (default password = 000000, role = Backoffice if not provided)
+        // ✅ Create new user
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
@@ -43,20 +45,21 @@ namespace Ev_backend.Controllers
                 Email = dto.Email,
                 Phone = dto.Phone,
                 NIC = dto.NIC,
-                Password = "000000", // default password
-                Role = dto.Role ?? UserRole.Backoffice // default role
+                Password = "000000",
+                Role = dto.Role ?? UserRole.Backoffice
             };
 
             await _userService.CreateAsync(user);
             return Ok(new { message = "User created successfully", user });
         }
 
-        // ✅ Update user (password not updated here)
+        // ✅ Update user (keeps password)
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UserUpdateDto dto)
         {
             var existing = await _userService.GetByIdAsync(id);
-            if (existing == null) return NotFound(new { message = "User not found" });
+            if (existing == null)
+                return NotFound(new { message = "User not found" });
 
             var updatedUser = new User
             {
@@ -65,8 +68,9 @@ namespace Ev_backend.Controllers
                 Email = dto.Email,
                 Phone = dto.Phone,
                 NIC = dto.NIC,
-                Password = existing.Password, // keep old password
-                Role = dto.Role
+                Password = existing.Password,
+                Role = dto.Role,
+                IsActive = existing.IsActive // 👈 keep isActive as it is
             };
 
             await _userService.UpdateAsync(id, updatedUser);
@@ -78,34 +82,41 @@ namespace Ev_backend.Controllers
         public async Task<IActionResult> Delete(string id)
         {
             var existing = await _userService.GetByIdAsync(id);
-            if (existing == null) return NotFound(new { message = "User not found" });
+            if (existing == null)
+                return NotFound(new { message = "User not found" });
 
             await _userService.DeleteAsync(id);
             return Ok(new { message = "User deleted successfully" });
         }
 
-        // ✅ Deactivate user account
+        // ✅ DEACTIVATE user
         [HttpPatch("{id}/deactivate")]
         public async Task<IActionResult> Deactivate(string id)
         {
             var existing = await _userService.GetByIdAsync(id);
-            if (existing == null) return NotFound(new { message = "User not found" });
+            if (existing == null)
+                return NotFound(new { message = "User not found" });
+
+            if (!existing.IsActive)
+                return BadRequest(new { message = "User is already deactivated" });
 
             await _userService.DeactivateAsync(id);
             return Ok(new { message = "User account deactivated successfully" });
         }
 
-        // ✅ Reactivate user account (Backoffice only)
-        [HttpPatch("{id}/reactivate")]
-        public async Task<IActionResult> Reactivate(string id)
+        // ✅ ACTIVATE user
+        [HttpPatch("{id}/activate")]
+        public async Task<IActionResult> Activate(string id)
         {
             var existing = await _userService.GetByIdAsync(id);
-            if (existing == null) return NotFound(new { message = "User not found" });
+            if (existing == null)
+                return NotFound(new { message = "User not found" });
 
-            if (existing.IsActive) return BadRequest(new { message = "User account is already active" });
+            if (existing.IsActive)
+                return BadRequest(new { message = "User is already active" });
 
-            await _userService.ReactivateAsync(id);
-            return Ok(new { message = "User account reactivated successfully" });
+            await _userService.ActivateAsync(id);
+            return Ok(new { message = "User account activated successfully" });
         }
 
         // ✅ Get user by NIC
@@ -113,7 +124,9 @@ namespace Ev_backend.Controllers
         public async Task<IActionResult> GetByNIC(string nic)
         {
             var user = await _userService.GetByNICAsync(nic);
-            if (user == null) return NotFound(new { message = "User not found" });
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
             return Ok(user);
         }
 
@@ -122,7 +135,9 @@ namespace Ev_backend.Controllers
         public async Task<IActionResult> GetByEmail(string email)
         {
             var user = await _userService.GetByEmailAsync(email);
-            if (user == null) return NotFound(new { message = "User not found" });
+            if (user == null)
+                return NotFound(new { message = "User not found" });
+
             return Ok(user);
         }
     }

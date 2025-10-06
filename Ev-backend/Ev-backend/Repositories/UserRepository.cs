@@ -13,10 +13,10 @@ namespace Ev_backend.Repositories
             _users = database.GetCollection<User>("Users");
         }
 
-        public async Task<List<User>> GetAllAsync()
-        {
-            return await _users.Find(_ => true).ToListAsync();
-        }
+        // ========================= BASIC CRUD =========================
+
+        public async Task<List<User>> GetAllAsync() =>
+            await _users.Find(_ => true).ToListAsync();
 
         public async Task<User?> GetByIdAsync(string id)
         {
@@ -26,26 +26,23 @@ namespace Ev_backend.Repositories
 
         public async Task CreateAsync(User user)
         {
-            // 👇 default password and role
             user.Password = "000000";
             if (!Enum.IsDefined(typeof(UserRole), user.Role) || user.Role == 0)
-            {
                 user.Role = UserRole.Backoffice;
-            }
+
             await _users.InsertOneAsync(user);
         }
 
         public async Task UpdateAsync(string id, User userIn)
         {
             var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
-
-            // 👇 we don’t allow updating password here
             var update = Builders<User>.Update
                 .Set(u => u.Username, userIn.Username)
                 .Set(u => u.Email, userIn.Email)
                 .Set(u => u.Phone, userIn.Phone)
                 .Set(u => u.NIC, userIn.NIC)
-                .Set(u => u.Role, userIn.Role);
+                .Set(u => u.Role, userIn.Role)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
 
             await _users.UpdateOneAsync(filter, update);
         }
@@ -55,6 +52,21 @@ namespace Ev_backend.Repositories
             var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
             await _users.DeleteOneAsync(filter);
         }
+
+        // ========================= STATUS UPDATE =========================
+
+        // ✅ Unified method to activate or deactivate without touching other fields
+        public async Task SetActiveStatusAsync(string id, bool isActive)
+        {
+            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
+            var update = Builders<User>.Update
+                .Set(u => u.IsActive, isActive)
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+
+            await _users.UpdateOneAsync(filter, update);
+        }
+
+        // ========================= OTHER HELPERS =========================
 
         public async Task<User?> GetByNICAsync(string nic)
         {
@@ -66,24 +78,6 @@ namespace Ev_backend.Repositories
         {
             var filter = Builders<User>.Filter.Eq(u => u.Email, email);
             return await _users.Find(filter).FirstOrDefaultAsync();
-        }
-
-        public async Task DeactivateAsync(string id)
-        {
-            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
-            var update = Builders<User>.Update
-                .Set(u => u.IsActive, false)
-                .Set(u => u.UpdatedAt, DateTime.UtcNow);
-            await _users.UpdateOneAsync(filter, update);
-        }
-
-        public async Task ReactivateAsync(string id)
-        {
-            var filter = Builders<User>.Filter.Eq("_id", ObjectId.Parse(id));
-            var update = Builders<User>.Update
-                .Set(u => u.IsActive, true)
-                .Set(u => u.UpdatedAt, DateTime.UtcNow);
-            await _users.UpdateOneAsync(filter, update);
         }
 
         public async Task<bool> ExistsByNICAsync(string nic)

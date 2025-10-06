@@ -19,8 +19,11 @@ namespace Ev_backend.Services
         public Task DeleteAsync(string id) => _userRepository.DeleteAsync(id);
         public Task<User?> GetByNICAsync(string nic) => _userRepository.GetByNICAsync(nic);
         public Task<User?> GetByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
-        public Task DeactivateAsync(string id) => _userRepository.DeactivateAsync(id);
-        public Task ReactivateAsync(string id) => _userRepository.ReactivateAsync(id);
+
+        // ✅ New methods for activation/deactivation
+        public Task DeactivateAsync(string id) => _userRepository.SetActiveStatusAsync(id, false);
+        public Task ActivateAsync(string id) => _userRepository.SetActiveStatusAsync(id, true);
+
         public Task<bool> ExistsByNICAsync(string nic) => _userRepository.ExistsByNICAsync(nic);
         public Task<bool> ExistsByEmailAsync(string email) => _userRepository.ExistsByEmailAsync(email);
     }

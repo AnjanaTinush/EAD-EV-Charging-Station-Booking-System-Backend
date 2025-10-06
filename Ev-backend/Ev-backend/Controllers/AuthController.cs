@@ -34,7 +34,8 @@ namespace Ev_backend.Controllers
                         email = createdUser.Email,
                         phone = createdUser.Phone,
                         nic = createdUser.NIC,
-                        role = createdUser.Role.ToString()
+                        role = createdUser.Role.ToString(),
+                        isActive = createdUser.IsActive // ✅ added field
                     }
                 });
             }
@@ -55,7 +56,11 @@ namespace Ev_backend.Controllers
                 if (user == null)
                     return Unauthorized(new { message = "Invalid NIC or password" });
 
-                // ✅ Role-based access logic
+                // ✅ Prevent login if account deactivated
+                if (!user.IsActive)
+                    return StatusCode(403, new { message = "Your account is deactivated. Please contact admin." });
+
+                // ✅ Role-based access control
                 switch (platform.ToLower())
                 {
                     case "mobile":
@@ -69,7 +74,7 @@ namespace Ev_backend.Controllers
                         break;
                 }
 
-                // ✅ Success response (safe for both local & IIS)
+                // ✅ Success response (includes IsActive)
                 return Ok(new
                 {
                     message = "Login successful",
@@ -79,7 +84,9 @@ namespace Ev_backend.Controllers
                         username = user.Username,
                         email = user.Email,
                         phone = user.Phone,
-                        role = user.Role.ToString()
+                        nic = user.NIC,
+                        role = user.Role.ToString(),
+                        isActive = user.IsActive // ✅ added field here too
                     }
                 });
             }
