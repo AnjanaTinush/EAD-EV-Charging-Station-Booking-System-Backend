@@ -1,6 +1,7 @@
 ﻿using Ev_backend.DTOs;
 using Ev_backend.Models;
 using Ev_backend.Repositories;
+using BCrypt.Net;
 
 namespace Ev_backend.Services
 {
@@ -15,13 +16,22 @@ namespace Ev_backend.Services
 
         public async Task<EVOwnerResponseDto> CreateAsync(CreateEVOwnerDto dto)
         {
+            // ✅ Step 1: Check if NIC already exists
+            var existingOwner = await _repo.GetByNICAsync(dto.NIC);
+            if (existingOwner != null)
+            {
+                throw new InvalidOperationException($"An owner with NIC '{dto.NIC}' already exists.");
+            }
+
+            // ✅ Step 2: Create new owner with default hashed password
             var entity = new EVOwner
             {
                 NIC = dto.NIC,
                 FullName = dto.FullName,
                 Email = dto.Email,
                 Phone = dto.Phone,
-                IsActive = true
+                IsActive = true,
+                Password = BCrypt.Net.BCrypt.HashPassword("000000")
             };
 
             entity = await _repo.InsertAsync(entity);
@@ -36,6 +46,10 @@ namespace Ev_backend.Services
             owner.Email = dto.Email;
             owner.Phone = dto.Phone;
             owner.IsActive = dto.IsActive;
+
+            // keep existing password; set default if missing
+            if (string.IsNullOrEmpty(owner.Password))
+                owner.Password = BCrypt.Net.BCrypt.HashPassword("000000");
 
             await _repo.UpdateAsync(owner);
             return Map(owner);

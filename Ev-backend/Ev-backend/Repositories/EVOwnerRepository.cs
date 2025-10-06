@@ -13,13 +13,13 @@ namespace Ev_backend.Repositories
         {
             var client = new MongoClient(options.Value.ConnectionString);
             var db = client.GetDatabase(options.Value.DatabaseName);
-            _collection = db.GetCollection<EVOwner>("evowners");
+            _collection = db.GetCollection<EVOwner>("EvOwners");
         }
 
-        public Task<EVOwner?> GetByIdAsync(string id) =>
+        public Task<EVOwner> GetByIdAsync(string id) =>
             _collection.Find(o => o.Id == id).FirstOrDefaultAsync();
 
-        public Task<EVOwner?> GetByNICAsync(string nic) =>
+        public Task<EVOwner> GetByNICAsync(string nic) =>
             _collection.Find(o => o.NIC == nic).FirstOrDefaultAsync();
 
         public Task<List<EVOwner>> GetAllAsync() =>
