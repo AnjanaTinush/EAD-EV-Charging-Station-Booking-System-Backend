@@ -35,7 +35,6 @@ namespace Ev_backend.Controllers
                         username = createdUser.Username,
                         email = createdUser.Email,
                         phone = createdUser.Phone,
-                        nic = createdUser.NIC,
                         role = createdUser.Role
                     }
                 });
@@ -50,23 +49,19 @@ namespace Ev_backend.Controllers
         public async Task<IActionResult> Login([FromBody] AuthDto loginDto)
         {
             var user = await _authService.LoginAsync(loginDto.NIC, loginDto.Password);
+
             if (user == null)
                 return Unauthorized(new { message = "Invalid NIC or password" });
-
-            var usersCollection = _database.GetCollection<BsonDocument>("Users");
-            var filter = Builders<BsonDocument>.Filter.Eq("nic", user.NIC);
-            var bsonUser = await usersCollection.Find(filter).FirstOrDefaultAsync();
 
             return Ok(new
             {
                 message = "Login successful",
                 user = new
                 {
-                    id = bsonUser["_id"].ToString(),
+                    id = user.Id,
                     username = user.Username,
                     email = user.Email,
                     phone = user.Phone,
-                    nic = user.NIC,
                     role = user.Role
                 }
             });
