@@ -1,9 +1,8 @@
 ﻿using Ev_backend.DTOs;
 using Ev_backend.Models;
+using Ev_backend.Models.Enums;
 using Ev_backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
-using MongoDB.Bson;
 
 namespace Ev_backend.Controllers
 {
@@ -12,14 +11,13 @@ namespace Ev_backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
-        private readonly IMongoDatabase _database;
 
-        public AuthController(AuthService authService, IMongoClient client)
+        public AuthController(AuthService authService)
         {
             _authService = authService;
-            _database = client.GetDatabase("EVChargingDB");
         }
 
+        // ========================= REGISTER =========================
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] User user)
         {
@@ -35,7 +33,8 @@ namespace Ev_backend.Controllers
                         username = createdUser.Username,
                         email = createdUser.Email,
                         phone = createdUser.Phone,
-                        role = createdUser.Role
+                        nic = createdUser.NIC,
+                        role = createdUser.Role.ToString()
                     }
                 });
             }
@@ -45,26 +44,49 @@ namespace Ev_backend.Controllers
             }
         }
 
+        // ========================= LOGIN =========================
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] AuthDto loginDto)
+        public async Task<IActionResult> Login([FromBody] AuthDto loginDto, [FromQuery] string platform = "web")
         {
-            var user = await _authService.LoginAsync(loginDto.NIC, loginDto.Password);
-
-            if (user == null)
-                return Unauthorized(new { message = "Invalid NIC or password" });
-
-            return Ok(new
+            try
             {
-                message = "Login successful",
-                user = new
+                var user = await _authService.LoginAsync(loginDto.NIC, loginDto.Password);
+
+                if (user == null)
+                    return Unauthorized(new { message = "Invalid NIC or password" });
+
+                // ✅ Role-based access logic
+                switch (platform.ToLower())
                 {
-                    id = user.Id,
-                    username = user.Username,
-                    email = user.Email,
-                    phone = user.Phone,
-                    role = user.Role
+                    case "mobile":
+                        if (user.Role != UserRole.EvOwner && user.Role != UserRole.StationOperator)
+                            return StatusCode(403, new { message = "Your role is not allowed to log in on mobile." });
+                        break;
+
+                    case "web":
+                        if (user.Role != UserRole.Backoffice && user.Role != UserRole.StationOperator)
+                            return StatusCode(403, new { message = "Your role is not allowed to log in on web." });
+                        break;
                 }
-            });
+
+                // ✅ Success response (safe for both local & IIS)
+                return Ok(new
+                {
+                    message = "Login successful",
+                    user = new
+                    {
+                        id = user.Id,
+                        username = user.Username,
+                        email = user.Email,
+                        phone = user.Phone,
+                        role = user.Role.ToString()
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = $"Login failed: {ex.Message}" });
+            }
         }
     }
 }
