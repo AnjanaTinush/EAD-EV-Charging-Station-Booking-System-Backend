@@ -2,6 +2,6 @@
 {
     public class CompletedBookingDto
     {
-        public string? Notes { get; set; }  // optional (e.g., "Charging finished at 80% battery")
+        public string? Notes { get; set; }
     }
 }

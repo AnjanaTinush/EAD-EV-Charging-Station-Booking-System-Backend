@@ -12,7 +12,7 @@ namespace Ev_backend.Controllers
 
         public BookingController(IBookingService service) => _service = service;
 
-        // Create booking
+        // CREATE BOOKING
         [HttpPost]
         public async Task<ActionResult<BookingResponseDto>> Create([FromBody] CreateBookingDto dto)
         {
@@ -23,7 +23,7 @@ namespace Ev_backend.Controllers
         [HttpGet("{id}")]
         public IActionResult GetById(string id) => NotFound();
 
-        // Update
+        // UPDATE BOOKING
         [HttpPut("{id}")]
         public async Task<ActionResult<BookingResponseDto>> Update(string id, [FromBody] UpdateBookingDto dto)
         {
@@ -31,7 +31,7 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // Cancel
+        // CANCEL BOOKING
         [HttpPost("{id}/cancel")]
         public async Task<ActionResult<BookingResponseDto>> Cancel(string id, [FromBody] CancelBookingDto dto)
         {
@@ -39,47 +39,16 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // Approve → QR
+        // APPROVE BOOKING
         [HttpPost("{id}/approve")]
-        public async Task<ActionResult<BookingResponseDto>> Approve(string id, [FromBody] ApproveBookingDto dto)
+        public async Task<ActionResult<BookingResponseDto>> Approve(string id)
         {
-            var result = await _service.ApproveAsync(id, dto);
+            var result = await _service.ApproveAsync(id);
             return Ok(result);
         }
 
-        // Upcoming
-        [HttpGet("upcoming")]
-        public async Task<ActionResult<List<BookingResponseDto>>> Upcoming([FromQuery] string ownerNic)
-        {
-            var result = await _service.GetUpcomingAsync(ownerNic);
-            return Ok(result);
-        }
 
-        // History
-        [HttpGet("history")]
-        public async Task<ActionResult<List<BookingResponseDto>>> History([FromQuery] string ownerNic)
-        {
-            var result = await _service.GetHistoryAsync(ownerNic);
-            return Ok(result);
-        }
-
-        // GET: api/booking/all
-        [HttpGet("all")]
-        public async Task<ActionResult<List<BookingResponseDto>>> GetAll()
-        {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
-        }
-
-        // GET: api/booking/owner/{nic}
-        [HttpGet("owner/{nic}")]
-        public async Task<ActionResult<List<BookingResponseDto>>> GetByOwner(string nic)
-        {
-            var result = await _service.GetByOwnerAsync(nic);
-            return Ok(result);
-        }
-
-        // POST: api/booking/{id}/complete
+        // COMPLETE BOOKING
         [HttpPost("{id}/complete")]
         public async Task<ActionResult<BookingResponseDto>> Complete(string id, [FromBody] CompletedBookingDto dto)
         {
@@ -87,15 +56,44 @@ namespace Ev_backend.Controllers
             return Ok(result);
         }
 
-        // DELETE: api/booking/{id}
+        // UPCOMING BOOKINGS (by NIC)
+        [HttpGet("upcoming")]
+        public async Task<ActionResult<List<BookingResponseDto>>> Upcoming([FromQuery] string ownerNic)
+        {
+            var result = await _service.GetUpcomingAsync(ownerNic);
+            return Ok(result);
+        }
+
+        // HISTORY BOOKINGS (by NIC)
+        [HttpGet("history")]
+        public async Task<ActionResult<List<BookingResponseDto>>> History([FromQuery] string ownerNic)
+        {
+            var result = await _service.GetHistoryAsync(ownerNic);
+            return Ok(result);
+        }
+
+        // ALL BOOKINGS
+        [HttpGet("all")]
+        public async Task<ActionResult<List<BookingResponseDto>>> GetAll()
+        {
+            var result = await _service.GetAllAsync();
+            return Ok(result);
+        }
+
+        // BOOKINGS BY OWNER (NIC)
+        [HttpGet("owner/{nic}")]
+        public async Task<ActionResult<List<BookingResponseDto>>> GetByOwner(string nic)
+        {
+            var result = await _service.GetByOwnerAsync(nic);
+            return Ok(result);
+        }
+
+        // DELETE BOOKING
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {
             await _service.DeleteByIdAsync(id);
             return NoContent();
         }
-
-
-
     }
 }
