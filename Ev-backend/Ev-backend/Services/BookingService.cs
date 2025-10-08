@@ -21,6 +21,7 @@ namespace Ev_backend.Services
         }
 
         // ====================== CREATE ======================
+        // ====================== CREATE ======================
         public async Task<BookingResponseDto> CreateAsync(CreateBookingDto dto)
         {
             var now = _clock.UtcNow;
@@ -30,14 +31,16 @@ namespace Ev_backend.Services
             if (user == null || !user.IsActive || user.Role != UserRole.EvOwner)
                 throw new UnauthorizedAccessException("Booking not allowed. User not found or not an active EvOwner.");
 
+            // Booking date rule
             if (dto.ReservationTime < now || dto.ReservationTime > now.AddDays(7))
                 throw new InvalidOperationException("Reservation time must be within 7 days from now.");
 
-            // Check existing bookings but ignore cancelled
+            // Check for existing booking conflicts (ignore Cancelled or Completed)
             var existing = await _repo.GetByStationAndTimeAsync(dto.StationId, dto.ReservationTime);
-            if (existing.Any(b => b.Status != BookingStatus.Cancelled))
-                throw new InvalidOperationException("Another booking already exists at this time.");
+            if (existing.Any(b => b.Status != BookingStatus.Cancelled && b.Status != BookingStatus.Completed))
+                throw new InvalidOperationException("Another active booking already exists at this time.");
 
+            // Create new booking
             var booking = new Booking
             {
                 OwnerNIC = dto.OwnerNIC,
@@ -64,9 +67,13 @@ namespace Ev_backend.Services
             if (dto.NewReservationTime < now || dto.NewReservationTime > now.AddDays(7))
                 throw new InvalidOperationException("New reservation time must be within 7 days.");
 
+            // Check for overlapping bookings except Cancelled or Completed
             var existing = await _repo.GetByStationAndTimeAsync(booking.StationId, dto.NewReservationTime);
-            if (existing.Any(b => b.Status != BookingStatus.Cancelled && b.Id != booking.Id))
-                throw new InvalidOperationException("Another booking already exists at this time.");
+            if (existing.Any(b =>
+                b.Status != BookingStatus.Cancelled &&
+                b.Status != BookingStatus.Completed &&
+                b.Id != booking.Id))
+                throw new InvalidOperationException("Another active booking already exists at this time.");
 
             booking.ReservationTime = dto.NewReservationTime;
             booking.UpdatedAt = now;
@@ -74,6 +81,7 @@ namespace Ev_backend.Services
             await _repo.UpdateAsync(booking);
             return Map(booking);
         }
+
 
         // ====================== CANCEL ======================
         public async Task<BookingResponseDto> CancelAsync(string id, CancelBookingDto dto)
