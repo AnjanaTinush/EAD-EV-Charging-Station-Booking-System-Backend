@@ -64,7 +64,9 @@ namespace Ev_backend.Controllers
                 NIC = dto.NIC,
                 Password = hashedPassword,
                 Role = dto.Role ?? UserRole.Backoffice,
-                IsActive = true
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             await _userService.CreateAsync(user);
@@ -80,20 +82,18 @@ namespace Ev_backend.Controllers
                     user.Phone,
                     user.NIC,
                     user.Role,
-                    Password = "(hashed)"
+                    Password = "(hashed)",
+                    user.CreatedAt,
+                    user.UpdatedAt
                 }
             });
         }
 
-        // ✅ Update user (role optional)
+        // ✅ Update user (auto updates updatedAt)
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] JsonElement jsonBody)
         {
-            // ✅ Allow case-insensitive property matching
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var dto = JsonSerializer.Deserialize<UserUpdateDto>(jsonBody, options);
 
             var existing = await _userService.GetByIdAsync(id);
@@ -103,14 +103,13 @@ namespace Ev_backend.Controllers
             if (dto == null)
                 return BadRequest(new { message = "Invalid request body" });
 
-            // ✅ Validate phone (required)
             if (string.IsNullOrWhiteSpace(dto.Phone))
                 return BadRequest(new { message = "Phone number is required." });
 
             if (!PhoneRegex().IsMatch(dto.Phone))
                 return BadRequest(new { message = "Phone number must be exactly 10 digits." });
 
-            // ✅ Handle NIC (optional)
+            // --- Handle NIC (optional) ---
             string newNic = existing.NIC;
             if (jsonBody.TryGetProperty("nic", out _))
             {
@@ -126,11 +125,9 @@ namespace Ev_backend.Controllers
                     if (nicExists)
                         return Conflict(new { message = $"Another user with NIC '{dto.NIC}' already exists." });
                 }
-
                 newNic = dto.NIC;
             }
 
-            // ✅ Check email uniqueness (if provided)
             if (!string.IsNullOrEmpty(dto.Email))
             {
                 var emailExists = await _userService.ExistsByEmailAsync(dto.Email);
@@ -138,7 +135,7 @@ namespace Ev_backend.Controllers
                     return Conflict(new { message = $"Another user with email '{dto.Email}' already exists." });
             }
 
-            // ✅ Build updated user object
+            // ✅ Update fields
             var updatedUser = new User
             {
                 Id = existing.Id,
@@ -153,10 +150,20 @@ namespace Ev_backend.Controllers
                     : existing.Role
             };
 
-            await _userService.UpdateAsync(id, updatedUser);
-            return Ok(new { message = "User updated successfully", updatedUser });
-        }
+            // ✅ Set updatedAt before calling repository
+            updatedUser.UpdatedAt = DateTime.UtcNow;
 
+            await _userService.UpdateAsync(id, updatedUser);
+
+            // ✅ Fetch updated user (now includes updatedAt)
+            var refreshedUser = await _userService.GetByIdAsync(id);
+
+            return Ok(new
+            {
+                message = "User updated successfully",
+                updatedUser = refreshedUser
+            });
+        }
 
         // ✅ Delete user
         [HttpDelete("{id}")]
@@ -170,7 +177,7 @@ namespace Ev_backend.Controllers
             return Ok(new { message = "User deleted successfully" });
         }
 
-        // ✅ Deactivate / Activate
+        // ✅ Activate/Deactivate
         [HttpPatch("{id}/deactivate")]
         public async Task<IActionResult> Deactivate(string id)
         {

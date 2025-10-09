@@ -20,10 +20,11 @@ namespace Ev_backend.Services
         public Task<User?> GetByNICAsync(string nic) => _userRepository.GetByNICAsync(nic);
         public Task<User?> GetByEmailAsync(string email) => _userRepository.GetByEmailAsync(email);
 
-        // ✅ New methods for activation/deactivation
+        // ✅ Account state management
         public Task DeactivateAsync(string id) => _userRepository.SetActiveStatusAsync(id, false);
         public Task ActivateAsync(string id) => _userRepository.SetActiveStatusAsync(id, true);
 
+        // ✅ Existence checks
         public Task<bool> ExistsByNICAsync(string nic) => _userRepository.ExistsByNICAsync(nic);
         public Task<bool> ExistsByEmailAsync(string email) => _userRepository.ExistsByEmailAsync(email);
     }
