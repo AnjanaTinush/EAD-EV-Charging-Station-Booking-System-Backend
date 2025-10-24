@@ -8,6 +8,6 @@ namespace Ev_backend.DTOs
         public string? Email { get; set; }
         public string Phone { get; set; } = string.Empty;
         public string NIC { get; set; } = string.Empty;
-        public UserRole? Role { get; set; }   // ✅ make nullable (fixes HasValue / ?? issues)
+        public UserRole? Role { get; set; }   // nullable → updates only when sent
     }
 }

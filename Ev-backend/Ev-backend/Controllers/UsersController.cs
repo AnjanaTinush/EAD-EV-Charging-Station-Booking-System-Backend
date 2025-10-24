@@ -89,73 +89,30 @@ namespace Ev_backend.Controllers
             });
         }
 
-        // ✅ Update user (auto updates updatedAt)
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] JsonElement jsonBody)
+        public async Task<IActionResult> Update(string id, [FromBody] UserUpdateDto dto)
         {
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var dto = JsonSerializer.Deserialize<UserUpdateDto>(jsonBody, options);
-
             var existing = await _userService.GetByIdAsync(id);
             if (existing == null)
                 return NotFound(new { message = "User not found" });
 
-            if (dto == null)
-                return BadRequest(new { message = "Invalid request body" });
+            // ✅ Role update now works
+            var newRole = dto.Role ?? existing.Role;
 
-            if (string.IsNullOrWhiteSpace(dto.Phone))
-                return BadRequest(new { message = "Phone number is required." });
-
-            if (!PhoneRegex().IsMatch(dto.Phone))
-                return BadRequest(new { message = "Phone number must be exactly 10 digits." });
-
-            // --- Handle NIC (optional) ---
-            string newNic = existing.NIC;
-            if (jsonBody.TryGetProperty("nic", out _))
-            {
-                if (string.IsNullOrWhiteSpace(dto.NIC))
-                    return BadRequest(new { message = "NIC cannot be empty if provided." });
-
-                if (!NicRegex().IsMatch(dto.NIC))
-                    return BadRequest(new { message = "NIC must be exactly 12 digits." });
-
-                if (dto.NIC != existing.NIC)
-                {
-                    var nicExists = await _userService.ExistsByNICAsync(dto.NIC);
-                    if (nicExists)
-                        return Conflict(new { message = $"Another user with NIC '{dto.NIC}' already exists." });
-                }
-                newNic = dto.NIC;
-            }
-
-            if (!string.IsNullOrEmpty(dto.Email))
-            {
-                var emailExists = await _userService.ExistsByEmailAsync(dto.Email);
-                if (emailExists && dto.Email != existing.Email)
-                    return Conflict(new { message = $"Another user with email '{dto.Email}' already exists." });
-            }
-
-            // ✅ Update fields
             var updatedUser = new User
             {
                 Id = existing.Id,
                 Username = dto.Username ?? existing.Username,
                 Email = dto.Email ?? existing.Email,
                 Phone = dto.Phone,
-                NIC = newNic,
+                NIC = dto.NIC ?? existing.NIC,
                 Password = existing.Password,
+                Role = newRole,
                 IsActive = existing.IsActive,
-                Role = jsonBody.TryGetProperty("role", out _)
-                    ? dto.Role ?? existing.Role
-                    : existing.Role
+                UpdatedAt = DateTime.UtcNow
             };
 
-            // ✅ Set updatedAt before calling repository
-            updatedUser.UpdatedAt = DateTime.UtcNow;
-
             await _userService.UpdateAsync(id, updatedUser);
-
-            // ✅ Fetch updated user (now includes updatedAt)
             var refreshedUser = await _userService.GetByIdAsync(id);
 
             return Ok(new
@@ -164,6 +121,7 @@ namespace Ev_backend.Controllers
                 updatedUser = refreshedUser
             });
         }
+
 
         // ✅ Delete user
         [HttpDelete("{id}")]
@@ -177,7 +135,7 @@ namespace Ev_backend.Controllers
             return Ok(new { message = "User deleted successfully" });
         }
 
-        // ✅ Activate/Deactivate
+        // ✅ Activate / Deactivate
         [HttpPatch("{id}/deactivate")]
         public async Task<IActionResult> Deactivate(string id)
         {
@@ -202,21 +160,6 @@ namespace Ev_backend.Controllers
 
             await _userService.ActivateAsync(id);
             return Ok(new { message = "User account activated successfully" });
-        }
-
-        // ✅ Get by NIC / Email
-        [HttpGet("by-nic/{nic}")]
-        public async Task<IActionResult> GetByNIC(string nic)
-        {
-            var user = await _userService.GetByNICAsync(nic);
-            return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
-        }
-
-        [HttpGet("by-email/{email}")]
-        public async Task<IActionResult> GetByEmail(string email)
-        {
-            var user = await _userService.GetByEmailAsync(email);
-            return user == null ? NotFound(new { message = "User not found" }) : Ok(user);
         }
 
         // ✅ Compile-time regexes
