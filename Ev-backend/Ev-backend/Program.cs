@@ -5,17 +5,17 @@ using MongoDB.Driver;
 using Ev_backend.Utils;
 using Ev_backend.Repositories;
 using Ev_backend.Services;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ================== CORS ==================
-// Allow frontend on localhost:5173 (Vite / React)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // frontend URL
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -25,48 +25,46 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        // ✅ allow "EvOwner", "evOwner", "Backoffice", etc.
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false)
+        );
+        // ✅ make property names case-insensitive
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        // ✅ optional: pretty print in Swagger
+        options.JsonSerializerOptions.WriteIndented = true;
     });
 
 // ================== Dependency Injection ==================
-
-// Auth
 builder.Services.AddScoped<AuthRepository>();
 builder.Services.AddScoped<AuthService>();
 
-// User
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 
-// Station
 builder.Services.AddScoped<StationRepository>();
 builder.Services.AddScoped<StationService>();
 
-// Booking
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 
-// EV Owner
 builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>();
 builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
 
-//Financail
 builder.Services.AddScoped<FinancialRepository>();
 builder.Services.AddScoped<FinancialService>();
 
-// Mobile Authentication (only StationOperator & EvOwner login)
 builder.Services.AddScoped<MobileAuth>();
 
-// Utils
 builder.Services.AddSingleton<ITimeProvider, SystemTimeProvider>();
 
-// ================== Swagger ==================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ================== MongoDB Config ==================
+// ================== MongoDB ==================
 builder.Services.Configure<MongoDbSettings>(
-    builder.Configuration.GetSection("MongoDbSettings"));
+    builder.Configuration.GetSection("MongoDbSettings")
+);
 
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
@@ -84,7 +82,7 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
 // ================== Build App ==================
 var app = builder.Build();
 
-// ✅ Test MongoDB connection on startup
+// ✅ MongoDB connection test
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
@@ -107,12 +105,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Enable CORS for frontend
-app.UseCors("AllowFrontend");
-
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();
