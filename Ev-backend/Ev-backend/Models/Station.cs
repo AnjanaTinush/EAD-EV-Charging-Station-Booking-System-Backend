@@ -15,6 +15,9 @@ namespace Ev_backend.Models
         [BsonElement("location")]
         public string Location { get; set; }
 
+        [BsonElement("coordinates")]
+        public double[] Coordinates { get; set; }
+
         [BsonElement("type")]
         public string Type { get; set; }   // AC / DC
 
