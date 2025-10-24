@@ -50,6 +50,10 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IEVOwnerRepository, EVOwnerRepository>();
 builder.Services.AddScoped<IEVOwnerService, EVOwnerService>();
 
+//Financail
+builder.Services.AddScoped<FinancialRepository>();
+builder.Services.AddScoped<FinancialService>();
+
 // Mobile Authentication (only StationOperator & EvOwner login)
 builder.Services.AddScoped<MobileAuth>();
 
